@@ -19,7 +19,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "18"
+                  node-version: "20"
                   cache: "npm"
                   cache-dependency-path: api/package-lock.json
 
@@ -46,7 +46,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "18"
+                  node-version: "20"
                   cache: "npm"
                   cache-dependency-path: ui/package-lock.json
 
@@ -79,7 +79,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "18"
+                  node-version: "20"
                   cache: "npm"
                   cache-dependency-path: ui/package-lock.json
 
@@ -89,7 +89,7 @@ jobs:
                   java-version: "17"
                   distribution: "temurin"
 
-            - name: Install Dependencies
+            - name: Install JS Dependencies
               run: npm ci
 
             - name: Prebuild (Generate Android Folder)
@@ -99,11 +99,23 @@ jobs:
               uses: ruby/setup-ruby@v1
               with:
                   ruby-version: "3.0"
-                  bundler-cache: true
-                  working-directory: ./ui/android # Fastlane files will be here after prebuild
+                  bundler-cache: false # Forzamos instalación manual para evitar errores de path
+                  working-directory: ./ui/android
+
+            - name: Install Fastlane & Bundler
+              run: |
+                  gem install bundler
+                  # Si no existe Gemfile en android/, lo creamos o usamos el del repo
+                  if [ ! -f Gemfile ]; then
+                    bundle init
+                    echo 'gem "fastlane"' >> Gemfile
+                  fi
+                  bundle install
+              working-directory: ./ui/android
 
             - name: Decode Android Keystore
               run: |
+                  mkdir -p android/app
                   echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release-key.keystore
 
             - name: Build & Upload to App Distribution (Fastlane)
