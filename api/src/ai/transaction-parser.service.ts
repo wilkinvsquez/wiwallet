@@ -1,19 +1,34 @@
-import { Injectable } from "@nestjs/common";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { Injectable } from '@nestjs/common';
+import {
+  GoogleGenerativeAI,
+  GenerativeModel,
+  GenerateContentResult,
+  EnhancedGenerateContentResponse,
+} from '@google/generative-ai';
+
+// Definimos la estructura esperada para el retorno
+interface TransactionData {
+  amount: number;
+  currency: 'CRC' | 'USD';
+  category: string;
+  merchant: string;
+  date: string;
+}
 
 @Injectable()
 export class TransactionParserService {
-	private genAI: GoogleGenerativeAI;
-	private model: any;
+  private genAI: GoogleGenerativeAI;
+  private model: GenerativeModel; // Cambiado de any a GenerativeModel
 
-	constructor() {
-		// Asegúrate de tener GEMINI_API_KEY en tus variables de entorno (.env)
-		this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-		this.model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
-	}
+  constructor() {
+    const apiKey = process.env.GEMINI_API_KEY || '';
+    this.genAI = new GoogleGenerativeAI(apiKey);
+    // Definimos el modelo con el tipo correcto
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+  }
 
-	async parseTransaction(text: string) {
-		const prompt = `
+  async parseTransaction(text: string): Promise<TransactionData | null> {
+    const prompt = `
       Analiza el siguiente texto de una transacción financiera y extrae los datos en JSON:
       Texto: "${text}"
       
@@ -21,27 +36,38 @@ export class TransactionParserService {
       {
         "amount": number,
         "currency": "CRC" | "USD",
-        "category": string (ej: "Comida", "Transporte", "Servicios"),
+        "category": string,
         "merchant": string,
-        "date": "YYYY-MM-DD" (si no se especifica, usa la fecha de hoy)
+        "date": "YYYY-MM-DD"
       }
       Solo devuelve el JSON, sin markdown.
     `;
 
-		const result = await this.model.generateContent(prompt);
-		const response = await result.response;
-		const textResponse = response.text();
+    try {
+      // Tipamos el resultado de la llamada a la IA
+      const result: GenerateContentResult =
+        await this.model.generateContent(prompt);
+      const response: EnhancedGenerateContentResponse = result.response;
+      const textResponse: string = response.text();
 
-		try {
-			// Limpiar posibles bloques de código markdown
-			const jsonString = textResponse
-				.replace(/```json/g, "")
-				.replace(/```/g, "")
-				.trim();
-			return JSON.parse(jsonString);
-		} catch (error) {
-			console.error("Error parsing AI response:", error);
-			return null;
-		}
-	}
+      // Limpiar bloques de código markdown
+      const jsonString: string = textResponse
+        .replace(/```json/gi, '')
+        .replace(/```/g, '')
+        .trim();
+
+      // Casteamos el resultado del parseo a nuestra interfaz
+      const parsedData = JSON.parse(jsonString) as TransactionData;
+
+      // Validación mínima post-parseo
+      if (!parsedData.amount || !parsedData.currency) {
+        throw new Error('Invalid transaction structure from AI');
+      }
+
+      return parsedData;
+    } catch (error) {
+      console.error('Error parsing AI response:', error);
+      return null;
+    }
+  }
 }
