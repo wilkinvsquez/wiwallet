@@ -1,5 +1,5 @@
 export interface TaxResult {
-    ccss: number;
-    incomeTax: number;
-    netSalary: number;
+  ccss: number;
+  incomeTax: number;
+  netSalary: number;
 }
