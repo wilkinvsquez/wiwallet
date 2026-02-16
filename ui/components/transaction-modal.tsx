@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	View,
 	Text,
@@ -20,6 +20,7 @@ interface TransactionModalProps {
 	visible: boolean;
 	onClose: () => void;
 	onSuccess: () => void;
+	transaction?: any; // Si existe, estamos editando
 }
 
 const CATEGORIES = [
@@ -36,12 +37,23 @@ export default function TransactionModal({
 	visible,
 	onClose,
 	onSuccess,
+	transaction,
 }: TransactionModalProps) {
 	const { showAlert } = useAlert();
 	const [amount, setAmount] = useState("");
 	const [category, setCategory] = useState("");
 	const [description, setDescription] = useState("");
 	const [loading, setLoading] = useState(false);
+
+	const isEditing = !!transaction;
+
+	useEffect(() => {
+		if (transaction) {
+			setAmount(transaction.amount.toString());
+			setCategory(transaction.category);
+			setDescription(transaction.description || "");
+		}
+	}, [transaction]);
 
 	async function handleSubmit() {
 		if (!amount || !category) {
@@ -57,13 +69,21 @@ export default function TransactionModal({
 
 		try {
 			setLoading(true);
-			await api.post("/transactions", {
+			const data = {
 				amount: numAmount,
 				category,
 				description: description || undefined,
-				type: "expense",
-			});
-			showAlert("¡Gasto registrado!", "success");
+				type: "expense" as const,
+			};
+
+			if (isEditing) {
+				await api.put(`/transactions/${transaction.id}`, data);
+				showAlert("¡Gasto actualizado!", "success");
+			} else {
+				await api.post("/transactions", data);
+				showAlert("¡Gasto registrado!", "success");
+			}
+
 			resetForm();
 			onSuccess();
 			onClose();
@@ -102,7 +122,9 @@ export default function TransactionModal({
 				<View style={styles.modalContainer}>
 					{/* Header */}
 					<View style={styles.header}>
-						<Text style={styles.title}>Agregar Gasto</Text>
+						<Text style={styles.title}>
+							{isEditing ? "Editar Gasto" : "Agregar Gasto"}
+						</Text>
 						<TouchableOpacity
 							onPress={handleClose}
 							style={styles.closeBtn}>
@@ -191,7 +213,11 @@ export default function TransactionModal({
 								]}
 								style={styles.submitGradient}>
 								<Text style={styles.submitText}>
-									{loading ? "Guardando..." : "Guardar Gasto"}
+									{loading
+										? "Guardando..."
+										: isEditing
+											? "Actualizar Gasto"
+											: "Guardar Gasto"}
 								</Text>
 							</LinearGradient>
 						</TouchableOpacity>
@@ -201,11 +227,12 @@ export default function TransactionModal({
 		</Modal>
 	);
 }
-
 const styles = StyleSheet.create({
 	overlay: {
 		flex: 1,
-		justifyContent: "flex-end",
+		justifyContent: "center", // Centrado en web
+		alignItems: "center", // Centrado en web
+		paddingHorizontal: Spacing.xl,
 	},
 	backdrop: {
 		...StyleSheet.absoluteFillObject,
@@ -213,12 +240,18 @@ const styles = StyleSheet.create({
 	},
 	modalContainer: {
 		backgroundColor: "white",
-		borderTopLeftRadius: Border.radius.xxl,
-		borderTopRightRadius: Border.radius.xxl,
+		borderRadius: Border.radius.xxl,
 		paddingTop: Spacing.lg,
 		paddingHorizontal: Spacing.xl,
 		paddingBottom: Spacing.xxl,
 		maxHeight: "90%",
+		width: "100%",
+		maxWidth: 500, // Límite de ancho para web
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 20 },
+		shadowOpacity: 0.25,
+		shadowRadius: 25,
+		elevation: 20,
 	},
 	header: {
 		flexDirection: "row",

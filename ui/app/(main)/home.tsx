@@ -13,17 +13,30 @@ import { Colors, Spacing, Border } from "@/constants/theme";
 import { useAuth } from "@/context/auth.context";
 import api from "@/services/api.service";
 import TransactionModal from "@/components/transaction-modal";
+import SalaryBreakdownCard from "@/components/salary-breakdown-card";
+import PremiumBalanceCard from "@/components/premium-balance-card";
+import { useAlert } from "@/context/alert.context";
+import ConfirmationDialog from "@/components/confirmation-dialog";
 
 export default function Home() {
-	const { user } = useAuth();
+	const { user, signOut } = useAuth();
+	const { showAlert } = useAlert();
 	const [balance, setBalance] = useState({
-		income: 0,
-		expenses: 0,
-		balance: 0,
+		monthly: { income: 0, expenses: 0, balance: 0 },
+		quincenal: { income: 0, expenses: 0, balance: 0 },
 	});
+	const [viewMode, setViewMode] = useState<"monthly" | "quincenal">(
+		"quincenal",
+	);
+	const [netSalary, setNetSalary] = useState(0);
 	const [transactions, setTransactions] = useState([]);
 	const [loading, setLoading] = useState(true);
-	const [isModalVisible, setIsModalVisible] = useState(false);
+	const [modalVisible, setModalVisible] = useState(false);
+	const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+	const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+	const [transactionToDelete, setTransactionToDelete] = useState<
+		string | null
+	>(null);
 
 	useEffect(() => {
 		loadData();
@@ -32,22 +45,55 @@ export default function Home() {
 	async function loadData() {
 		try {
 			setLoading(true);
-			const [balanceRes, transactionsRes] = await Promise.all([
+			const [balanceRes, transactionsRes, salaryRes] = await Promise.all([
 				api.get("/transactions/balance"),
 				api.get("/transactions"),
+				api.get("/users/salary-breakdown"),
 			]);
 
 			setBalance(
-				balanceRes.data || { income: 0, expenses: 0, balance: 0 },
+				balanceRes.data || {
+					monthly: { income: 0, expenses: 0, balance: 0 },
+					quincenal: { income: 0, expenses: 0, balance: 0 },
+				},
 			);
 			setTransactions((transactionsRes.data || []).slice(0, 5));
+			setNetSalary(salaryRes.data?.netSalary || 0);
 		} catch (error) {
 			console.error("Error loading data:", error);
-			setBalance({ income: 0, expenses: 0, balance: 0 });
+			setBalance({
+				monthly: { income: 0, expenses: 0, balance: 0 },
+				quincenal: { income: 0, expenses: 0, balance: 0 },
+			});
 			setTransactions([]);
 		} finally {
 			setLoading(false);
 		}
+	}
+
+	function handleDeleteTransaction(transactionId: string) {
+		setTransactionToDelete(transactionId);
+		setDeleteDialogVisible(true);
+	}
+
+	async function confirmDelete() {
+		if (!transactionToDelete) return;
+
+		try {
+			await api.delete(`/transactions/${transactionToDelete}`);
+			showAlert("Transacción eliminada", "success");
+			loadData();
+		} catch (error: any) {
+			showAlert(error, "error");
+		} finally {
+			setDeleteDialogVisible(false);
+			setTransactionToDelete(null);
+		}
+	}
+
+	function handleEditTransaction(transaction: any) {
+		setSelectedTransaction(transaction);
+		setModalVisible(true);
 	}
 
 	if (loading) {
@@ -70,46 +116,31 @@ export default function Home() {
 			]}
 			style={styles.container}>
 			<ScrollView showsVerticalScrollIndicator={false}>
-				{/* Header */}
-				<View style={styles.header}>
-					<Text style={styles.greeting}>
-						👋 Hola, {user?.name || "Usuario"}
-					</Text>
-				</View>
-
-				{/* Balance Card */}
-				<View style={styles.balanceCard}>
-					<Text style={styles.balanceLabel}>Balance Actual</Text>
-					<Text style={styles.balanceAmount}>
-						₡{balance.balance.toLocaleString()}
-					</Text>
-					<View style={styles.balanceDetails}>
-						<View style={styles.balanceItem}>
-							<Text style={styles.balanceDetailLabel}>
-								Ingresos
-							</Text>
-							<Text
-								style={[
-									styles.balanceDetailValue,
-									{ color: Colors.primary.emerald },
-								]}>
-								₡{balance.income.toLocaleString()}
-							</Text>
-						</View>
-						<View style={styles.balanceItem}>
-							<Text style={styles.balanceDetailLabel}>
-								Gastos
-							</Text>
-							<Text
-								style={[
-									styles.balanceDetailValue,
-									{ color: Colors.semantic.error },
-								]}>
-								-₡{balance.expenses.toLocaleString()}
-							</Text>
-						</View>
+				<ScrollView showsVerticalScrollIndicator={false}>
+					<View style={styles.header}>
+						<Text style={styles.greeting}>
+							👋 Hola, {user?.name || "Usuario"}
+						</Text>
+						<TouchableOpacity
+							onPress={signOut}
+							style={styles.logoutBtn}>
+							<Ionicons
+								name='log-out-outline'
+								size={24}
+								color={Colors.semantic.error}
+							/>
+						</TouchableOpacity>
 					</View>
-				</View>
+
+					<SalaryBreakdownCard />
+
+					<PremiumBalanceCard
+						balance={balance}
+						netSalary={netSalary}
+						viewMode={viewMode}
+						onViewModeChange={setViewMode}
+					/>
+				</ScrollView>
 
 				{/* Recent Transactions */}
 				<View style={styles.section}>
@@ -161,6 +192,34 @@ export default function Home() {
 									{transaction.type === "income" ? "+" : "-"}₡
 									{transaction.amount.toLocaleString()}
 								</Text>
+
+								{/* Botones de acción */}
+								<View style={styles.transactionActions}>
+									<TouchableOpacity
+										onPress={() =>
+											handleEditTransaction(transaction)
+										}
+										style={styles.actionBtn}>
+										<Ionicons
+											name='pencil'
+											size={18}
+											color={Colors.primary.emerald}
+										/>
+									</TouchableOpacity>
+									<TouchableOpacity
+										onPress={() =>
+											handleDeleteTransaction(
+												transaction.id,
+											)
+										}
+										style={styles.actionBtn}>
+										<Ionicons
+											name='trash'
+											size={18}
+											color={Colors.semantic.error}
+										/>
+									</TouchableOpacity>
+								</View>
 							</View>
 						))
 					)}
@@ -171,7 +230,7 @@ export default function Home() {
 			<TouchableOpacity
 				style={styles.fab}
 				activeOpacity={0.8}
-				onPress={() => setIsModalVisible(true)}>
+				onPress={() => setModalVisible(true)}>
 				<LinearGradient
 					colors={[Colors.primary.emerald, Colors.primary.forest]}
 					style={styles.fabGradient}>
@@ -180,9 +239,24 @@ export default function Home() {
 			</TouchableOpacity>
 			{/* Transaction Modal */}
 			<TransactionModal
-				visible={isModalVisible}
-				onClose={() => setIsModalVisible(false)}
+				visible={modalVisible}
+				onClose={() => {
+					setModalVisible(false);
+					setSelectedTransaction(null);
+				}}
 				onSuccess={loadData}
+				transaction={selectedTransaction}
+			/>
+
+			<ConfirmationDialog
+				visible={deleteDialogVisible}
+				title='Eliminar transacción'
+				message='¿Estás seguro de que deseas eliminar esta transacción? Esta acción no se puede deshacer.'
+				confirmText='Eliminar'
+				cancelText='Cancelar'
+				type='danger'
+				onConfirm={confirmDelete}
+				onCancel={() => setDeleteDialogVisible(false)}
 			/>
 		</LinearGradient>
 	);
@@ -215,53 +289,14 @@ const styles = StyleSheet.create({
 	header: {
 		paddingHorizontal: Spacing.xl,
 		marginBottom: Spacing.lg,
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
 	},
 	greeting: {
 		fontSize: 28,
 		fontWeight: "700",
 		color: Colors.neutral.slate800,
-	},
-	balanceCard: {
-		backgroundColor: "white",
-		marginHorizontal: Spacing.xl,
-		padding: Spacing.xl,
-		borderRadius: Border.radius.xl,
-		marginBottom: Spacing.xl,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 4 },
-		shadowOpacity: 0.1,
-		shadowRadius: 12,
-		elevation: 5,
-	},
-	balanceLabel: {
-		fontSize: 14,
-		color: Colors.neutral.slate500,
-		marginBottom: 8,
-	},
-	balanceAmount: {
-		fontSize: 42,
-		fontWeight: "800",
-		color: Colors.primary.forest,
-		marginBottom: Spacing.md,
-	},
-	balanceDetails: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		paddingTop: Spacing.md,
-		borderTopWidth: 1,
-		borderTopColor: Colors.neutral.slate200,
-	},
-	balanceItem: {
-		flex: 1,
-	},
-	balanceDetailLabel: {
-		fontSize: 12,
-		color: Colors.neutral.slate500,
-		marginBottom: 4,
-	},
-	balanceDetailValue: {
-		fontSize: 18,
-		fontWeight: "700",
 	},
 	section: {
 		paddingHorizontal: Spacing.xl,
@@ -344,5 +379,19 @@ const styles = StyleSheet.create({
 		borderRadius: 30,
 		justifyContent: "center",
 		alignItems: "center",
+	},
+	logoutBtn: {
+		padding: 8,
+	},
+
+	transactionActions: {
+		flexDirection: "row",
+		gap: 4,
+		marginLeft: Spacing.sm,
+	},
+	actionBtn: {
+		padding: 6,
+		borderRadius: 8,
+		backgroundColor: Colors.neutral.slate50,
 	},
 });

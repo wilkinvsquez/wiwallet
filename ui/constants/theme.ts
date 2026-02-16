@@ -24,6 +24,7 @@ export const Colors = {
 		beige: "#f5f5dc",
 		cream: "#fdfbf7",
 		sand: "#e7e5e4",
+		mint: "#d1fae5",
 	},
 	neutral: {
 		white: "#ffffff",
