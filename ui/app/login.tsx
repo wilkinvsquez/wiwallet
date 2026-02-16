@@ -12,21 +12,36 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../context/auth.context";
 import { Colors } from "../constants/theme";
 import { loginStyles as styles } from "../styles/login.styles";
+import { router } from "expo-router";
+import { useAlert } from "../context/alert.context";
+import { validateEmail } from "@/utils/validations";
 
 export default function Login() {
 	const { signIn } = useAuth();
+	const { showAlert } = useAlert();
 	const [email, setEmail] = useState("admin@wiwallet.com");
 	const [password, setPassword] = useState("123456");
 	const [loading, setLoading] = useState(false);
 
+	/**
+	 * Method to handle the login
+	 */
 	async function handleLogin() {
+		if (!validateEmail(email)) {
+			showAlert("Ingresa un correo electrónico válido", "error");
+			return;
+		}
+		if (!password) {
+			showAlert("Ingresa tu contraseña", "error");
+			return;
+		}
 		try {
 			setLoading(true);
 			await signIn({ email, password });
-		} catch (err: any) {
-			console.log("Login Error:", err);
-		} finally {
+			showAlert("¡Bienvenido de nuevo!", "success");
+		} catch (error: any) {
 			setLoading(false);
+			showAlert(error, "error");
 		}
 	}
 
@@ -38,11 +53,14 @@ export default function Login() {
 				Colors.primary.mint,
 			]}
 			style={styles.container}>
+			{/* KeyboardAvoidingView to handle the keyboard */}
 			<KeyboardAvoidingView
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
 				style={styles.content}>
+				{/* Glass card for the login form */}
 				<View style={styles.glassCard}>
 					<View style={styles.iconContainer}>
+						{/* Icon with gradient */}
 						<LinearGradient
 							colors={[
 								Colors.primary.emerald,
@@ -81,7 +99,7 @@ export default function Login() {
 							secureTextEntry
 						/>
 					</View>
-
+					{/* Login button */}
 					<TouchableOpacity
 						onPress={handleLogin}
 						disabled={loading}
@@ -102,17 +120,17 @@ export default function Login() {
 							)}
 						</LinearGradient>
 					</TouchableOpacity>
-
+					{/* Forgot password button */}
 					<TouchableOpacity style={styles.forgotPass}>
 						<Text style={styles.forgotPassText}>
 							¿Necesitas ayuda para entrar?
 						</Text>
 					</TouchableOpacity>
 				</View>
-
+				{/* Footer with sign up button */}
 				<View style={styles.footer}>
 					<Text style={styles.footerText}>¿Eres nuevo aquí? </Text>
-					<TouchableOpacity>
+					<TouchableOpacity onPress={() => router.push("/register")}>
 						<Text style={styles.signUpText}>Crea tu cuenta</Text>
 					</TouchableOpacity>
 				</View>

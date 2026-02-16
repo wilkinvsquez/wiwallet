@@ -86,6 +86,17 @@ export const loginStyles = StyleSheet.create({
 		color: Colors.neutral.slate800,
 		fontSize: 16,
 	},
+	inputError: {
+		borderColor: Colors.semantic.error,
+		backgroundColor: "#FEF2F2",
+	},
+	errorText: {
+		color: Colors.semantic.error,
+		fontSize: 12,
+		marginTop: 4,
+		marginLeft: 4,
+		fontWeight: "500",
+	},
 	button: {
 		borderRadius: Border.radius.lg,
 		padding: 18,

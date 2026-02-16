@@ -11,8 +11,12 @@ import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AuthProvider, useAuth } from "@/context/auth.context";
+import { AlertProvider } from "@/context/alert.context";
 
-// 1. Componente interno para manejar la lógica de redirección
+/**
+ * Method to handle the root layout navigation
+ * @returns JSX.Element
+ */
 function RootLayoutNav() {
 	const colorScheme = useColorScheme();
 	const { signed, loading } = useAuth();
@@ -35,6 +39,7 @@ function RootLayoutNav() {
 			<Stack screenOptions={{ headerShown: false }}>
 				<Stack.Screen name='index' />
 				<Stack.Screen name='login' />
+				<Stack.Screen name='register' />
 				<Stack.Screen name='(main)' />
 			</Stack>
 			<StatusBar style='auto' />
@@ -42,11 +47,16 @@ function RootLayoutNav() {
 	);
 }
 
-// 2. El componente principal solo envuelve con el Provider
+/**
+ * Method to handle the root layout
+ * @returns JSX.Element
+ */
 export default function RootLayout() {
 	return (
 		<AuthProvider>
-			<RootLayoutNav />
+			<AlertProvider>
+				<RootLayoutNav />
+			</AlertProvider>
 		</AuthProvider>
 	);
 }

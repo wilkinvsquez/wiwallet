@@ -1,9 +1,8 @@
 export const Colors = {
-	// Legacy Support for Expo Hooks (Mapping to Calm Palette)
 	light: {
 		text: "#1e293b",
-		background: "#fdfbf7", // Beige Cream
-		tint: "#059669", // Calm Forest Green
+		background: "#fdfbf7",
+		tint: "#059669",
 		icon: "#64748b",
 		tabIconDefault: "#94a3b8",
 		tabIconSelected: "#059669",
@@ -16,16 +15,15 @@ export const Colors = {
 		tabIconDefault: "#475569",
 		tabIconSelected: "#10b981",
 	},
-	// Calm Finance Design System
 	primary: {
-		mint: "#d1fae5", // Verde muy claro
-		emerald: "#10b981", // Verde marca
-		forest: "#059669", // Verde profundo (calma)
+		mint: "#d1fae5",
+		emerald: "#10b981",
+		forest: "#059669",
 	},
 	accent: {
-		beige: "#f5f5dc", // Beige clásico
-		cream: "#fdfbf7", // Crema suave (fondo)
-		sand: "#e7e5e4", // Arena (bordes)
+		beige: "#f5f5dc",
+		cream: "#fdfbf7",
+		sand: "#e7e5e4",
 	},
 	neutral: {
 		white: "#ffffff",

@@ -12,6 +12,11 @@ interface AuthContextData {
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
+/**
+ * Method to handle the auth provider
+ * @param children React.ReactNode
+ * @returns JSX.Element
+ */
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 	children,
 }) => {
@@ -33,6 +38,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 		loadStorageData();
 	}, []);
 
+	/**
+	 * Method to handle the sign in
+	 * @param credentials any
+	 */
 	async function signIn(credentials: any) {
 		const response: any = await api.post("/auth/login", credentials);
 		const { access_token, user: userData } = response.data;
@@ -44,6 +53,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 		await storage.setItem("wiwallet_user", JSON.stringify(userData));
 	}
 
+	/**
+	 * Method to handle the sign out
+	 */
 	async function signOut() {
 		await storage.removeItem("wiwallet_token");
 		await storage.removeItem("wiwallet_user");
