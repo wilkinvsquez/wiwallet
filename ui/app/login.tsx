@@ -19,8 +19,8 @@ import { validateEmail } from "@/utils/validations";
 export default function Login() {
 	const { signIn } = useAuth();
 	const { showAlert } = useAlert();
-	const [email, setEmail] = useState("admin@wiwallet.com");
-	const [password, setPassword] = useState("123456");
+	const [email, setEmail] = useState("wilkinvsquez@gmail.com");
+	const [password, setPassword] = useState("123123");
 	const [loading, setLoading] = useState(false);
 
 	/**

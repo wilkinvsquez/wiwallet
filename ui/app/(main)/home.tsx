@@ -1,198 +1,397 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
 	View,
 	Text,
 	StyleSheet,
 	ScrollView,
 	TouchableOpacity,
+	ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Colors, Spacing, Border } from "@/constants/theme";
 import { useAuth } from "@/context/auth.context";
+import api from "@/services/api.service";
+import TransactionModal from "@/components/transaction-modal";
+import SalaryBreakdownCard from "@/components/salary-breakdown-card";
+import PremiumBalanceCard from "@/components/premium-balance-card";
+import { useAlert } from "@/context/alert.context";
+import ConfirmationDialog from "@/components/confirmation-dialog";
 
-export default function Dashboard() {
-	const { signOut } = useAuth();
+export default function Home() {
+	const { user, signOut } = useAuth();
+	const { showAlert } = useAlert();
+	const [balance, setBalance] = useState({
+		monthly: { income: 0, expenses: 0, balance: 0 },
+		quincenal: { income: 0, expenses: 0, balance: 0 },
+	});
+	const [viewMode, setViewMode] = useState<"monthly" | "quincenal">(
+		"quincenal",
+	);
+	const [netSalary, setNetSalary] = useState(0);
+	const [transactions, setTransactions] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [modalVisible, setModalVisible] = useState(false);
+	const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+	const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+	const [transactionToDelete, setTransactionToDelete] = useState<
+		string | null
+	>(null);
+
+	useEffect(() => {
+		loadData();
+	}, []);
+
+	async function loadData() {
+		try {
+			setLoading(true);
+			const [balanceRes, transactionsRes, salaryRes] = await Promise.all([
+				api.get("/transactions/balance"),
+				api.get("/transactions"),
+				api.get("/users/salary-breakdown"),
+			]);
+
+			setBalance(
+				balanceRes.data || {
+					monthly: { income: 0, expenses: 0, balance: 0 },
+					quincenal: { income: 0, expenses: 0, balance: 0 },
+				},
+			);
+			setTransactions((transactionsRes.data || []).slice(0, 5));
+			setNetSalary(salaryRes.data?.netSalary || 0);
+		} catch (error) {
+			console.error("Error loading data:", error);
+			setBalance({
+				monthly: { income: 0, expenses: 0, balance: 0 },
+				quincenal: { income: 0, expenses: 0, balance: 0 },
+			});
+			setTransactions([]);
+		} finally {
+			setLoading(false);
+		}
+	}
+
+	function handleDeleteTransaction(transactionId: string) {
+		setTransactionToDelete(transactionId);
+		setDeleteDialogVisible(true);
+	}
+
+	async function confirmDelete() {
+		if (!transactionToDelete) return;
+
+		try {
+			await api.delete(`/transactions/${transactionToDelete}`);
+			showAlert("Transacción eliminada", "success");
+			loadData();
+		} catch (error: any) {
+			showAlert(error, "error");
+		} finally {
+			setDeleteDialogVisible(false);
+			setTransactionToDelete(null);
+		}
+	}
+
+	function handleEditTransaction(transaction: any) {
+		setSelectedTransaction(transaction);
+		setModalVisible(true);
+	}
+
+	if (loading) {
+		return (
+			<View style={styles.loadingContainer}>
+				<ActivityIndicator
+					size='large'
+					color={Colors.primary.emerald}
+				/>
+			</View>
+		);
+	}
 
 	return (
-		<SafeAreaView style={styles.container}>
-			<ScrollView contentContainerStyle={styles.scrollContent}>
-				{/* Header Section */}
-				<View style={styles.header}>
-					<View>
-						<Text style={styles.greeting}>Hola de nuevo 🌿</Text>
-						<Text style={styles.title}>Tu resumen de hoy</Text>
+		<LinearGradient
+			colors={[
+				Colors.accent.cream,
+				Colors.accent.beige,
+				Colors.primary.mint,
+			]}
+			style={styles.container}>
+			<ScrollView showsVerticalScrollIndicator={false}>
+				<ScrollView showsVerticalScrollIndicator={false}>
+					<View style={styles.header}>
+						<Text style={styles.greeting}>
+							👋 Hola, {user?.name || "Usuario"}
+						</Text>
+						<TouchableOpacity
+							onPress={signOut}
+							style={styles.logoutBtn}>
+							<Ionicons
+								name='log-out-outline'
+								size={24}
+								color={Colors.semantic.error}
+							/>
+						</TouchableOpacity>
 					</View>
-					<TouchableOpacity
-						onPress={signOut}
-						style={styles.logoutBtn}>
-						<Text style={styles.logoutText}>Salir</Text>
-					</TouchableOpacity>
-				</View>
 
-				{/* Balance Card */}
-				<LinearGradient
-					colors={[Colors.primary.forest, "#065f46"]}
-					start={{ x: 0, y: 0 }}
-					end={{ x: 1, y: 1 }}
-					style={styles.balanceCard}>
-					<Text style={styles.balanceLabel}>Balance Total</Text>
-					<Text style={styles.balanceAmount}>$12,450.00</Text>
-					<View style={styles.balanceBadge}>
-						<Text style={styles.badgeText}>+ 2.5% este mes</Text>
-					</View>
-				</LinearGradient>
+					<SalaryBreakdownCard />
 
-				{/* Quick Actions */}
-				<Text style={styles.sectionTitle}>Acciones rápidas</Text>
-				<View style={styles.actionsGrid}>
-					<ActionItem icon='➕' label='Ingreso' />
-					<ActionItem icon='💸' label='Gasto' />
-					<ActionItem icon='📊' label='Reportes' />
-					<ActionItem icon='🎯' label='Metas' />
-				</View>
+					<PremiumBalanceCard
+						balance={balance}
+						netSalary={netSalary}
+						viewMode={viewMode}
+						onViewModeChange={setViewMode}
+					/>
+				</ScrollView>
 
-				{/* Recent Activity Placeholder */}
-				<Text style={styles.sectionTitle}>Actividad reciente</Text>
-				<View style={styles.emptyState}>
-					<Text style={styles.emptyText}>
-						Todo en orden por aquí.
+				{/* Recent Transactions */}
+				<View style={styles.section}>
+					<Text style={styles.sectionTitle}>
+						📊 Últimas Transacciones
 					</Text>
-					<Text style={styles.emptySubtext}>
-						Tus transacciones aparecerán aquí pronto.
-					</Text>
+					{transactions.length === 0 ? (
+						<View style={styles.emptyState}>
+							<Text style={styles.emptyText}>
+								No hay transacciones aún
+							</Text>
+							<Text style={styles.emptySubtext}>
+								Toca el botón + para agregar tu primer gasto
+							</Text>
+						</View>
+					) : (
+						transactions.map((transaction: any) => (
+							<View
+								key={transaction.id}
+								style={styles.transactionItem}>
+								<View style={styles.transactionIcon}>
+									<Text style={styles.transactionEmoji}>
+										{getCategoryEmoji(transaction.category)}
+									</Text>
+								</View>
+								<View style={styles.transactionInfo}>
+									<Text style={styles.transactionCategory}>
+										{transaction.category}
+									</Text>
+									{transaction.description && (
+										<Text
+											style={
+												styles.transactionDescription
+											}>
+											{transaction.description}
+										</Text>
+									)}
+								</View>
+								<Text
+									style={[
+										styles.transactionAmount,
+										{
+											color:
+												transaction.type === "income"
+													? Colors.primary.emerald
+													: Colors.semantic.error,
+										},
+									]}>
+									{transaction.type === "income" ? "+" : "-"}₡
+									{transaction.amount.toLocaleString()}
+								</Text>
+
+								{/* Botones de acción */}
+								<View style={styles.transactionActions}>
+									<TouchableOpacity
+										onPress={() =>
+											handleEditTransaction(transaction)
+										}
+										style={styles.actionBtn}>
+										<Ionicons
+											name='pencil'
+											size={18}
+											color={Colors.primary.emerald}
+										/>
+									</TouchableOpacity>
+									<TouchableOpacity
+										onPress={() =>
+											handleDeleteTransaction(
+												transaction.id,
+											)
+										}
+										style={styles.actionBtn}>
+										<Ionicons
+											name='trash'
+											size={18}
+											color={Colors.semantic.error}
+										/>
+									</TouchableOpacity>
+								</View>
+							</View>
+						))
+					)}
 				</View>
 			</ScrollView>
-		</SafeAreaView>
+
+			{/* Floating Action Button */}
+			<TouchableOpacity
+				style={styles.fab}
+				activeOpacity={0.8}
+				onPress={() => setModalVisible(true)}>
+				<LinearGradient
+					colors={[Colors.primary.emerald, Colors.primary.forest]}
+					style={styles.fabGradient}>
+					<Ionicons name='add' size={32} color='white' />
+				</LinearGradient>
+			</TouchableOpacity>
+			{/* Transaction Modal */}
+			<TransactionModal
+				visible={modalVisible}
+				onClose={() => {
+					setModalVisible(false);
+					setSelectedTransaction(null);
+				}}
+				onSuccess={loadData}
+				transaction={selectedTransaction}
+			/>
+
+			<ConfirmationDialog
+				visible={deleteDialogVisible}
+				title='Eliminar transacción'
+				message='¿Estás seguro de que deseas eliminar esta transacción? Esta acción no se puede deshacer.'
+				confirmText='Eliminar'
+				cancelText='Cancelar'
+				type='danger'
+				onConfirm={confirmDelete}
+				onCancel={() => setDeleteDialogVisible(false)}
+			/>
+		</LinearGradient>
 	);
 }
 
-function ActionItem({ icon, label }: { icon: string; label: string }) {
-	return (
-		<TouchableOpacity style={styles.actionItem}>
-			<View style={styles.actionIcon}>
-				<Text style={{ fontSize: 24 }}>{icon}</Text>
-			</View>
-			<Text style={styles.actionLabel}>{label}</Text>
-		</TouchableOpacity>
-	);
+function getCategoryEmoji(category: string): string {
+	const emojis: Record<string, string> = {
+		Comida: "🍔",
+		Transporte: "🚗",
+		Casa: "🏠",
+		Salud: "💊",
+		Ocio: "🎉",
+		Servicios: "📱",
+		Compras: "🛒",
+		Salario: "💰",
+	};
+	return emojis[category] || "💵";
 }
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: Colors.accent.cream,
+		paddingTop: 60,
 	},
-	scrollContent: {
-		padding: Spacing.lg,
+	loadingContainer: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
 	},
 	header: {
+		paddingHorizontal: Spacing.xl,
+		marginBottom: Spacing.lg,
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
-		marginBottom: Spacing.xl,
-		marginTop: Spacing.md,
 	},
 	greeting: {
-		fontSize: 14,
-		color: Colors.neutral.slate500,
-		fontWeight: "500",
+		fontSize: 28,
+		fontWeight: "700",
+		color: Colors.neutral.slate800,
 	},
-	title: {
-		fontSize: 24,
-		fontWeight: "800",
-		color: Colors.neutral.slate900,
-	},
-	logoutBtn: {
-		padding: Spacing.sm,
-	},
-	logoutText: {
-		color: Colors.semantic.error,
-		fontWeight: "600",
-	},
-	balanceCard: {
-		borderRadius: Border.radius.xl,
-		padding: Spacing.xl,
-		marginBottom: Spacing.xxl,
-		shadowColor: Colors.primary.forest,
-		shadowOffset: { width: 0, height: 10 },
-		shadowOpacity: 0.2,
-		shadowRadius: 15,
-		elevation: 8,
-	},
-	balanceLabel: {
-		color: Colors.primary.mint,
-		fontSize: 14,
-		fontWeight: "600",
-		opacity: 0.9,
-	},
-	balanceAmount: {
-		color: Colors.neutral.white,
-		fontSize: 36,
-		fontWeight: "800",
-		marginVertical: Spacing.xs,
-	},
-	balanceBadge: {
-		backgroundColor: "rgba(255,255,255,0.2)",
-		alignSelf: "flex-start",
-		paddingVertical: 4,
-		paddingHorizontal: 10,
-		borderRadius: 12,
-		marginTop: Spacing.sm,
-	},
-	badgeText: {
-		color: Colors.neutral.white,
-		fontSize: 12,
-		fontWeight: "600",
+	section: {
+		paddingHorizontal: Spacing.xl,
+		marginBottom: Spacing.xl,
 	},
 	sectionTitle: {
 		fontSize: 18,
 		fontWeight: "700",
 		color: Colors.neutral.slate800,
-		marginBottom: Spacing.lg,
-	},
-	actionsGrid: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		marginBottom: Spacing.xxl,
-	},
-	actionItem: {
-		alignItems: "center",
-		width: "22%",
-	},
-	actionIcon: {
-		width: 55,
-		height: 55,
-		borderRadius: 18,
-		backgroundColor: Colors.accent.beige,
-		justifyContent: "center",
-		alignItems: "center",
-		marginBottom: Spacing.xs,
-		borderWidth: 1,
-		borderColor: Colors.accent.sand,
-	},
-	actionLabel: {
-		fontSize: 12,
-		color: Colors.neutral.slate600,
-		fontWeight: "600",
+		marginBottom: Spacing.md,
 	},
 	emptyState: {
-		backgroundColor: Colors.neutral.white,
-		padding: Spacing.xxl,
+		backgroundColor: "white",
+		padding: Spacing.xl,
 		borderRadius: Border.radius.lg,
 		alignItems: "center",
-		borderWidth: 1,
-		borderColor: Colors.accent.sand,
-		borderStyle: "dashed",
 	},
 	emptyText: {
 		fontSize: 16,
 		fontWeight: "600",
-		color: Colors.neutral.slate800,
+		color: Colors.neutral.slate600,
+		marginBottom: 4,
 	},
 	emptySubtext: {
 		fontSize: 14,
+		color: Colors.neutral.slate400,
+		textAlign: "center",
+	},
+	transactionItem: {
+		flexDirection: "row",
+		alignItems: "center",
+		backgroundColor: "white",
+		padding: Spacing.md,
+		borderRadius: Border.radius.lg,
+		marginBottom: Spacing.sm,
+	},
+	transactionIcon: {
+		width: 48,
+		height: 48,
+		borderRadius: 24,
+		backgroundColor: Colors.accent.beige,
+		justifyContent: "center",
+		alignItems: "center",
+		marginRight: Spacing.md,
+	},
+	transactionEmoji: {
+		fontSize: 24,
+	},
+	transactionInfo: {
+		flex: 1,
+	},
+	transactionCategory: {
+		fontSize: 16,
+		fontWeight: "600",
+		color: Colors.neutral.slate800,
+	},
+	transactionDescription: {
+		fontSize: 14,
 		color: Colors.neutral.slate500,
-		marginTop: 4,
+		marginTop: 2,
+	},
+	transactionAmount: {
+		fontSize: 18,
+		fontWeight: "700",
+	},
+	fab: {
+		position: "absolute",
+		bottom: 30,
+		right: 30,
+		borderRadius: 30,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 8 },
+		shadowOpacity: 0.3,
+		shadowRadius: 12,
+		elevation: 8,
+	},
+	fabGradient: {
+		width: 60,
+		height: 60,
+		borderRadius: 30,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	logoutBtn: {
+		padding: 8,
+	},
+
+	transactionActions: {
+		flexDirection: "row",
+		gap: 4,
+		marginLeft: Spacing.sm,
+	},
+	actionBtn: {
+		padding: 6,
+		borderRadius: 8,
+		backgroundColor: Colors.neutral.slate50,
 	},
 });

@@ -4,7 +4,7 @@ import { storage } from "../services/storage.service";
 
 interface AuthContextData {
 	signed: boolean;
-	user: { email: string } | null;
+	user: { email: string; name: string } | null;
 	loading: boolean;
 	signIn(credentials: any): Promise<void>;
 	signOut(): void;
@@ -20,7 +20,9 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 	children,
 }) => {
-	const [user, setUser] = useState<{ email: string } | null>(null);
+	const [user, setUser] = useState<{ email: string; name: string } | null>(
+		null,
+	);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {

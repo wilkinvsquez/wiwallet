@@ -24,6 +24,7 @@ export const Colors = {
 		beige: "#f5f5dc",
 		cream: "#fdfbf7",
 		sand: "#e7e5e4",
+		mint: "#d1fae5",
 	},
 	neutral: {
 		white: "#ffffff",
@@ -60,6 +61,7 @@ export const Border = {
 		md: 12,
 		lg: 16,
 		xl: 24,
+		xxl: 32,
 		full: 9999,
 	},
 };
