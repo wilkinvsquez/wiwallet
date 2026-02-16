@@ -1,10 +1,16 @@
 name: CI - Calidad de Código
 
 on:
-    push:
-        branches: ["develop"]
-    pull_request:
-        branches: ["develop"]
+    workflow_dispatch:
+#    push:
+#        branches: ["develop"]
+#    pull_request:
+#        branches: ["develop"]
+#pull_request:
+#    branches: ["main", "develop"]
+#    paths:
+#        - "api/**"
+#        - "ui/**"
 
 jobs:
     # 1. Validar Backend (NestJS)

@@ -45,8 +45,7 @@ export class TransactionParserService {
 
     try {
       // Tipamos el resultado de la llamada a la IA
-      const result: GenerateContentResult =
-        await this.model.generateContent(prompt);
+      const result: GenerateContentResult = await this.model.generateContent(prompt);
       const response: EnhancedGenerateContentResponse = result.response;
       const textResponse: string = response.text();
 

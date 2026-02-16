@@ -13,7 +13,7 @@ export class CalculationsService {
     { limit: 1363000, rate: 0.1 },
     { limit: 2392000, rate: 0.15 },
     { limit: 4783000, rate: 0.2 },
-    { limit: Infinity, rate: 0.25 },
+    { limit: Infinity, rate: 0.25 }
   ];
 
   /**
@@ -28,7 +28,7 @@ export class CalculationsService {
     return {
       ccss,
       incomeTax,
-      netSalary: grossSalaryCRC - ccss - incomeTax,
+      netSalary: grossSalaryCRC - ccss - incomeTax
     };
   }
 

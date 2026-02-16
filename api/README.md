@@ -1,98 +1,270 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+<div align="center">
+  <h1>💰 WiWallet API</h1>
+  <p>Backend REST API para la aplicación de gestión financiera personal WiWallet</p>
+  
+  ![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
+  ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+  ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+  ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+</div>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+---
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 📖 Descripción
 
-## Description
+API REST construida con **NestJS** y **TypeScript** que proporciona servicios de autenticación, gestión de usuarios y análisis financiero con inteligencia artificial para la aplicación móvil WiWallet.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### ✨ Características principales
 
-## Project setup
+- 🔐 **Autenticación JWT** - Sistema seguro de autenticación con tokens
+- 👤 **Gestión de usuarios** - Registro, login y administración de perfiles
+- 🤖 **Análisis con IA** - Integración con Google Generative AI para análisis financiero
+- 🗄️ **Base de datos SQLite** - Persistencia de datos con TypeORM
+- 🛡️ **Seguridad** - Implementación de Helmet y bcrypt para protección
+- 📊 **Respuestas estandarizadas** - Interceptores para formato consistente de respuestas
 
-```bash
-$ npm install
+---
+
+## 🏗️ Arquitectura
+
+```
+api/
+├── src/
+│   ├── ai/                    # Módulo de inteligencia artificial
+│   ├── auth/                  # Autenticación y autorización
+│   │   ├── decorators/        # Decoradores personalizados (@Public)
+│   │   ├── guards/            # Guards de autenticación JWT
+│   │   └── interfaces/        # Interfaces de tokens y payloads
+│   ├── common/                # Recursos compartidos
+│   │   └── interceptors/      # Interceptores de transformación
+│   ├── interfaces/            # Interfaces globales
+│   ├── services/              # Servicios de cálculos financieros
+│   ├── users/                 # Gestión de usuarios
+│   │   └── entities/          # Entidades de base de datos
+│   ├── app.module.ts          # Módulo principal
+│   └── main.ts                # Punto de entrada
+├── test/                      # Tests E2E
+└── database.sqlite            # Base de datos SQLite
 ```
 
-## Compile and run the project
+---
+
+## 🚀 Inicio rápido
+
+### Prerequisitos
+
+- **Node.js** >= 18.x
+- **npm** >= 9.x
+
+### Instalación
 
 ```bash
-# development
-$ npm run start
+# Clonar el repositorio
+git clone <repository-url>
 
-# watch mode
-$ npm run start:dev
+# Navegar al directorio del API
+cd wiwallet/api
 
-# production mode
-$ npm run start:prod
+# Instalar dependencias
+npm install
 ```
 
-## Run tests
+### Variables de entorno
+
+Crea un archivo `.env` en la raíz del proyecto API:
+
+```env
+# JWT Configuration
+JWT_SECRET=tu_clave_secreta_super_segura_aqui
+JWT_EXPIRES_IN=7d
+
+# Google AI
+GOOGLE_AI_API_KEY=tu_api_key_de_google_ai
+
+# Server
+PORT=3000
+```
+
+### Ejecutar en desarrollo
 
 ```bash
-# unit tests
-$ npm run test
+# Modo desarrollo con hot-reload
+npm run start:dev
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# Modo debug
+npm run start:debug
 ```
 
-## Deployment
+El servidor estará disponible en `http://localhost:3000`
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## 📜 Scripts disponibles
+
+| Script                | Descripción                           |
+| --------------------- | ------------------------------------- |
+| `npm run start`       | Inicia el servidor en modo producción |
+| `npm run start:dev`   | Inicia con hot-reload para desarrollo |
+| `npm run start:debug` | Inicia en modo debug                  |
+| `npm run build`       | Compila el proyecto para producción   |
+| `npm run format`      | Formatea el código con Prettier       |
+| `npm run lint`        | Ejecuta ESLint y corrige errores      |
+| `npm run test`        | Ejecuta tests unitarios               |
+| `npm run test:watch`  | Ejecuta tests en modo watch           |
+| `npm run test:cov`    | Genera reporte de cobertura           |
+| `npm run test:e2e`    | Ejecuta tests end-to-end              |
+
+---
+
+## 🔌 Endpoints principales
+
+### Autenticación
+
+```http
+POST /auth/register
+Content-Type: application/json
+
+{
+  "email": "usuario@ejemplo.com",
+  "password": "contraseña123",
+  "name": "Nombre Usuario"
+}
+```
+
+```http
+POST /auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ejemplo.com",
+  "password": "contraseña123"
+}
+```
+
+### Usuarios (requiere autenticación)
+
+```http
+GET /users/profile
+Authorization: Bearer <token>
+```
+
+### Respuestas estandarizadas
+
+Todas las respuestas siguen el formato:
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "message": "Operación exitosa",
+  "timestamp": "2026-02-16T17:38:23.000Z"
+}
+```
+
+---
+
+## 🛠️ Stack tecnológico
+
+### Core
+
+- **[NestJS](https://nestjs.com/)** v11 - Framework progresivo de Node.js
+- **[TypeScript](https://www.typescriptlang.org/)** v5.7 - Superset tipado de JavaScript
+- **[TypeORM](https://typeorm.io/)** v0.3 - ORM para TypeScript
+
+### Base de datos
+
+- **[SQLite3](https://www.sqlite.org/)** v5.1 - Base de datos embebida
+
+### Autenticación y seguridad
+
+- **[@nestjs/jwt](https://www.npmjs.com/package/@nestjs/jwt)** - Manejo de JWT
+- **[@nestjs/passport](https://www.npmjs.com/package/@nestjs/passport)** - Estrategias de autenticación
+- **[bcrypt](https://www.npmjs.com/package/bcrypt)** - Hash de contraseñas
+- **[helmet](https://helmetjs.github.io/)** - Seguridad HTTP headers
+
+### IA y servicios
+
+- **[@google/generative-ai](https://www.npmjs.com/package/@google/generative-ai)** - Google Gemini AI
+
+### Desarrollo
+
+- **[ESLint](https://eslint.org/)** - Linter de código
+- **[Prettier](https://prettier.io/)** - Formateador de código
+- **[Jest](https://jestjs.io/)** - Framework de testing
+
+---
+
+## 🧪 Testing
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Tests unitarios
+npm run test
+
+# Tests con watch mode
+npm run test:watch
+
+# Cobertura de código
+npm run test:cov
+
+# Tests E2E
+npm run test:e2e
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## 📦 Build para producción
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+# Compilar el proyecto
+npm run build
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# Ejecutar en producción
+npm run start:prod
+```
 
-## Support
+El código compilado se generará en el directorio `dist/`.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+## 🔒 Seguridad
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- ✅ Autenticación JWT con tokens seguros
+- ✅ Hash de contraseñas con bcrypt (salt rounds: 10)
+- ✅ Helmet para headers de seguridad HTTP
+- ✅ CORS habilitado para frontend Expo
+- ✅ Guards globales para protección de rutas
+- ✅ Decorador `@Public()` para rutas públicas
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 🤝 Contribución
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add: nueva característica'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+---
+
+## 📄 Licencia
+
+Este proyecto es privado y no tiene licencia pública.
+
+---
+
+## 👨‍💻 Autor
+
+**Wilkin Vásquez**
+
+---
+
+## 📞 Soporte
+
+Para preguntas o problemas, por favor abre un issue en el repositorio.
+
+---
+
+<div align="center">
+  <p>Hecho con ❤️ usando NestJS</p>
+</div>
