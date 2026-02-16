@@ -1,53 +1,67 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-import { Platform } from 'react-native';
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
 export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-  },
+	// Legacy Support for Expo Hooks (Mapping to Calm Palette)
+	light: {
+		text: "#1e293b",
+		background: "#fdfbf7", // Beige Cream
+		tint: "#059669", // Calm Forest Green
+		icon: "#64748b",
+		tabIconDefault: "#94a3b8",
+		tabIconSelected: "#059669",
+	},
+	dark: {
+		text: "#f8fafc",
+		background: "#0f172a",
+		tint: "#10b981",
+		icon: "#94a3b8",
+		tabIconDefault: "#475569",
+		tabIconSelected: "#10b981",
+	},
+	// Calm Finance Design System
+	primary: {
+		mint: "#d1fae5", // Verde muy claro
+		emerald: "#10b981", // Verde marca
+		forest: "#059669", // Verde profundo (calma)
+	},
+	accent: {
+		beige: "#f5f5dc", // Beige clásico
+		cream: "#fdfbf7", // Crema suave (fondo)
+		sand: "#e7e5e4", // Arena (bordes)
+	},
+	neutral: {
+		white: "#ffffff",
+		slate50: "#f8fafc",
+		slate100: "#f1f5f9",
+		slate200: "#e2e8f0",
+		slate400: "#94a3b8",
+		slate500: "#64748b",
+		slate600: "#475569",
+		slate800: "#1e293b",
+		slate900: "#0f172a",
+	},
+	semantic: {
+		success: "#10b981",
+		error: "#ef4444",
+		warning: "#f59e0b",
+		info: "#3b82f6",
+	},
 };
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-  },
-});
+export const Spacing = {
+	xs: 4,
+	sm: 8,
+	md: 16,
+	lg: 20,
+	xl: 24,
+	xxl: 32,
+	huge: 40,
+};
+
+export const Border = {
+	radius: {
+		sm: 8,
+		md: 12,
+		lg: 16,
+		xl: 24,
+		full: 9999,
+	},
+};
