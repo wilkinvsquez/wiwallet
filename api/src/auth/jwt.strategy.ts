@@ -13,6 +13,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
+  /**
+   * Validate method to validate JWT token
+   * @param payload JWT token payload
+   * @returns JWT token payload
+   */
   validate(payload: JwtPayload) {
     return { userId: payload.sub, email: payload.email };
   }

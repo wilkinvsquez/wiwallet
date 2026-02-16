@@ -6,6 +6,12 @@ import { ApiResponse } from '../../interfaces/api-response';
 
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor<T, ApiResponse<T>> {
+  /**
+   * Interceptor method to transform response
+   * @param context Execution context
+   * @param next Call handler
+   * @returns Observable with transformed response
+   */
   intercept(context: ExecutionContext, next: CallHandler): Observable<ApiResponse<T>> {
     const response = context.switchToHttp().getResponse<ExpressResponse>();
     const statusCode = response.statusCode;

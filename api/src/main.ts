@@ -9,11 +9,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Cors and security
-  app.use(helmet());
-  app.useGlobalInterceptors(new TransformInterceptor());
+  app.use(helmet()); // Security middleware
+  app.useGlobalInterceptors(new TransformInterceptor()); // Interceptor for response transformation
   app.enableCors(); // Allow requests from Expo frontend
   const reflector: Reflector = app.get(Reflector);
-  app.useGlobalGuards(new JwtAuthGuard(reflector));
+  app.useGlobalGuards(new JwtAuthGuard(reflector)); // JWT authentication guard
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 void bootstrap();

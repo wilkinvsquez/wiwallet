@@ -6,6 +6,11 @@ import { Public } from './decorators/public.decorator';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  /**
+   * Login
+   * @param loginDto Email & Password DTO
+   * @returns JWT Access Token & User Data
+   */
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('login')
@@ -13,9 +18,14 @@ export class AuthController {
     return this.authService.login(loginDto.email, loginDto.password);
   }
 
+  /**
+   * Register method to create a new user
+   * @param userDto Email, Password & Name DTO
+   * @returns JWT Access Token & User Data
+   */
   @Public()
   @Post('register')
-  register(@Body() userDto: { email: string; password: string }) {
-    return { message: 'Registro exitoso (Simulado)', user: userDto.email };
+  async register(@Body() userDto: { email: string; password: string; name?: string }) {
+    return this.authService.register(userDto.email, userDto.password, userDto.name);
   }
 }
