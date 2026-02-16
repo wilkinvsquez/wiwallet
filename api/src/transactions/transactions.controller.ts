@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Request, Param } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 
 export interface RequestWithUser extends Request {
@@ -22,6 +22,27 @@ export class TransactionsController {
     return this.transactionsService.create(req.user.userId, body);
   }
 
+  /**
+   * Update a transaction
+   * @param req Request with user data
+   * @param id Transaction ID
+   * @param body Updated data
+   * @returns Updated transaction
+   */
+  @Put(':id')
+  async update(@Request() req: RequestWithUser, @Param('id') id: string, @Body() body: { amount?: number; category?: string; description?: string; type?: 'income' | 'expense' }) {
+    return this.transactionsService.update(id, req.user.userId, body);
+  }
+  /**
+   * Delete a transaction
+   * @param req Request with user data
+   * @param id Transaction ID
+   */
+  @Delete(':id')
+  async delete(@Request() req: RequestWithUser, @Param('id') id: string) {
+    await this.transactionsService.delete(id, req.user.userId);
+    return { message: 'Transaction deleted successfully' };
+  }
   /**
    * Get all transactions for the authenticated user
    * @param req Request with user data
